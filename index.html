@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹소켓</title>
+    <style>
+        body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        #div { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+        #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+        #input:focus { outline: none; }
+        #div > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+        #messages > li { padding: 0.5rem 1rem; }
+        #messages > li:nth-child(odd) { background: #efefef; }
+    </style>
+
+</head>
+<body>
+<h1>웹소켓 테스트</h1>
+<div id="div">
+    <input id="input" autocomplete="off" />
+    <button id="btn_send">전송</button>
+    <button id="btn_close">연결 끊기</button>
+    <button id="btn_on" style="display: none">연결</button>
+</div>
+</body>
+<script>
+    function connect() {
+        let webSocket = new WebSocket("ws://localhost:30001");
+
+        webSocket.onopen = () => {
+            console.log("웹소켓서버와 연결 성공");
+        };
+
+        webSocket.onmessage = function (event) {
+            console.log(`서버 웹소켓에게 받은 데이터: ${event.data}`);
+        }
+
+        webSocket.onclose = function () {
+            console.log("서버 웹소켓 연결 종료");
+        }
+
+        webSocket.onerror = function (event) {
+            console.log(event)
+        }
+
+        document.getElementById("btn_send").onclick = function () {
+            const message = document.getElementById("input").value;
+            if (webSocket.readyState === webSocket.OPEN) {
+                webSocket.send(message);
+                document.getElementById("input").value = '';
+            } else {
+                alert("연결된 웹소켓 서버가 없습니다.");
+            }
+        }
+
+        document.getElementById("btn_close").onclick = function () {
+            if (webSocket.readyState === webSocket.OPEN) {
+                webSocket.close();
+            } else {
+                alert("연결된 웹소켓 서버가 없습니다.");
+            }
+
+            document.getElementById("btn_on").style.display = 'block';
+            document.getElementById("btn_close").style.display = 'none';
+        }
+
+        document.getElementById("btn_on").onclick = function () {
+            if (webSocket.readyState === webSocket.CLOSED) {
+                connect();
+            } else {
+                alert("이미 웹소켓 서버가 연결되었습니다.");
+            }
+
+            document.getElementById("btn_close").style.display = 'block';
+            document.getElementById("btn_on").style.display = 'none';
+        }
+    }
+
+    connect();
+</script>
+</html>
